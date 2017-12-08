@@ -7,7 +7,7 @@ function viewSTL( event )
         var fileUrl = "./STL.stl";
         var canvasID = "stlViewer";
         var stlColor = 0xff5533;
-        
+
         event.preventDefault();
         if ( currentContext === undefined )
             {
@@ -16,7 +16,7 @@ function viewSTL( event )
         else
             {
                 currentContext.destroy();
-                currentContext = new STLViewer( fileUrl, canvasID );
+                currentContext = new STLViewer( fileUrl, canvasID, stlColor );
 
             }
     }
@@ -25,7 +25,7 @@ function STLViewer( fileUrl, canvasID, modelColor )
     {
         var context;
         var newCanvas = document.getElementById( canvasID );
-
+        this.active = true;
         this.init = () => {
             context = this;
             this.file = fileUrl;
@@ -73,6 +73,10 @@ function STLViewer( fileUrl, canvasID, modelColor )
         };
 
         this.animate = () => {
+            if ( !this.active )
+                {
+                    return;
+                }
             requestAnimationFrame( () => {
                 this.animate();
             } );
@@ -116,11 +120,18 @@ function STLViewer( fileUrl, canvasID, modelColor )
         this.destroy = () => {
             this.scene.remove( this.mesh );
             this.mesh.geometry.dispose();
-            this.mesh.dispose();
-            this.renderer.deallocateObject( this.mesh );
+            //this.mesh.dispose();
+            //this.renderer.deallocateObject( this.mesh );
             this.mesh = null;
+            var sceneChildren = this.scene.children.map( ( child ) => {
+                return child;
+            } );
+            sceneChildren.forEach( ( child ) => {
+                this.scene.remove( child );
+            } );
             this.controls.dispose();
-            this.removeEventListener( this.resizeEventListener );
+
+            window.removeEventListener( 'resize', this.resizeEventListener );
         };
 
         this.onWindowResize = () => {
